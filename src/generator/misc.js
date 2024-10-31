@@ -40,19 +40,19 @@ const cliParams = () => {
   const config = {
     csvFile: path.resolve(csvFile),
     csvColumn: csvColumn,
-    amount: Number(amount) || null,
-    batchSize: Number(batchSize) || 100,
     outputDirectory: path.resolve(outputDirectory),
     size: Number(size) || null,
     fonts: fonts ? fonts.split(',') : ['Roboto'],
     fontWeights: fontWeights ? fontWeights.split(',').map(x => Number(x)) : [200],
     concurrency: Number(concurrency) || 4,
+    minSmilesLength: Number(minSmilesLength) || 0,
+    maxSmilesLength: Number(maxSmilesLength) || 1000,
     outputSvg: !!outputSvg,
     outputLabels: !!outputLabels,
     outputFlat: !!outputFlat,
-    clean: !!clean,
-    maxSmilesLength: Number(maxSmilesLength) || 1000,
-    minSmilesLength: Number(minSmilesLength) || 0
+    amount: Number(amount) || null,
+    batchSize: Number(batchSize) || 100,
+    clean: !!clean
   }
 
   const invalid = Object.entries(config).filter(([key, value]) => value === null)

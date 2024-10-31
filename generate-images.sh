@@ -5,13 +5,12 @@ node generate-images.js \
   --size "512" \
   --fonts "Roboto,Roboto Mono,Open Sans,Lato,Poppins,Raleway,PT Sans,Muka,Playfair Display,Bebas Neue,Josefin Sans" \
   --font-weights "400,600,800,900" \
-  --preserve-aspect-ratio "none" \
   --concurrency "4" \
-  --label-type "points" \
   --min-smiles-length "0" \
   --max-smiles-length "500" \
-  --output-labels \
-  --amount "50000" \
+  --amount "1000" \
   --batch-size "100" \
+  --output-svg \
+  --output-labels \
   --output-flat \
   --clean

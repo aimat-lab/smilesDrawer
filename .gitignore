@@ -1,9 +1,4 @@
-node_modules/
-yarn-error.log
 .idea
-*.png
-*.svg
-generated-images/**/*
-*.log
-user-data
-dumps
+/node_modules
+/browser
+/dumps

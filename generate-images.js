@@ -64,19 +64,21 @@
 
   console.log(`processing ${conf.amount} images in ${batches.length} batches (batch size ${conf.batchSize}, concurrency ${conf.concurrency})`)
 
-  const userDataDir = path.join('user-data', uuid())
-  await fs.ensureDir(userDataDir)
-
-  const browserOptions = {
-    userDataDir: userDataDir,
-    headless: true,
-    devtools: false
-  }
-
   const debug = typeof v8debug === 'object'
   const children = {}
   let done = 0
   for (const [index, smilesList] of batches.entries()) {
+    const tmpDir = path.join('browser', uuid())
+    await fs.ensureDir(tmpDir)
+
+    const browserOptions = {
+      userDataDir: tmpDir,
+      temporaryDirectory: tmpDir,
+      headless: true,
+      devtools: false,
+      protocolTimeout: 100_000_000
+    }
+
     const message = { conf, smilesList, browserOptions }
 
     const args = { }
@@ -113,6 +115,8 @@
     while (Object.keys(children).length >= conf.concurrency) {
       await wait(1000)
     }
+
+    await fs.remove(tmpDir)
   }
 
   // aneb: must also wait for last processes to finish
@@ -120,6 +124,5 @@
     await wait(100)
   }
 
-  await fs.remove(userDataDir)
   console.timeEnd(label)
 })()

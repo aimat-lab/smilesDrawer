@@ -193,14 +193,14 @@ Renderer.prototype.smilesToSvgXml = function(smiles) {
   const baseValue = Math.round(this.size * 0.1)
 
   const options = {
-    overlapSensitivity: 1e-5,
+    overlapSensitivity: 1e-1,
     overlapResolutionIterations: 50,
     strokeWidth: _.sample([5, 6, 7, 8, 9, 10]),
     gradientOffset: _.sample([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
-    wedgeBaseWidth: baseValue * _.sample([0.2, 0.3, 0.4, 0.5]),
-    dashedWedgeSpacing: baseValue * _.sample([0.05, 0.06, 0.07, 0.08, 0.09]),
-    dashedWedgeWidth: baseValue * _.sample([0.6, 0.7, 0.7, 0.8, 0.9]),
-    bondThickness: baseValue * _.sample([0.1, 0.15, 0.2, 0.25]),
+    wedgeBaseWidth: baseValue * _.sample([0.2, 0.3, 0.4]),
+    dashedWedgeSpacing: baseValue * _.sample([0.05, 0.06, 0.07, 0.08]),
+    dashedWedgeWidth: baseValue * _.sample([0.6, 0.7, 0.7, 0.8]),
+    bondThickness: baseValue * _.sample([0.1, 0.15, 0.2]),
     bondLength: baseValue * _.sample([2, 2.5, 3, 3.5, 4]),
     shortBondLength: _.sample([0.7, 0.75, 0.8, 0.85]),
     bondSpacing: baseValue * _.sample([0.2, 0.3, 0.4, 0.5]),
@@ -208,7 +208,7 @@ Renderer.prototype.smilesToSvgXml = function(smiles) {
     fontWeight: _.sample(this.fontWeights),
     fontSizeLarge: baseValue * _.sample([0.8, 0.85, 0.9, 0.95]),
     fontSizeSmall: baseValue * _.sample([0.5, 0.55, 0.6, 0.65]),
-    padding: baseValue * _.sample([2, 4, 6, 8]),
+    padding: baseValue * _.sample([2, 4, 6]),
     terminalCarbons: _.sample([true, false]),
     explicitHydrogens: _.sample([true, false])
   }
@@ -259,7 +259,7 @@ Renderer.prototype.drawPoints = function({ id, label, points, text }) {
   const color = this.svgHelper.randomColor()
 
   // aneb: try to avoid overlapping points by using different sizes
-  const size = _.floor(_.random(true) * 5 + 2) / 10
+  const size = _.random(5, 10)
   return points.map(([x, y]) => {
     return this.svgHelper.createElement('circle', {
       'label-id': `${id}-label`,
@@ -302,13 +302,13 @@ Renderer.prototype.imageFromSmilesString = async function(page, smiles) {
     const target = `${this.outputDirectory}/${id}`
     await fs.ensureDir(target)
     await this.saveResizedImage(page, smiles, svgXmlWithoutLabels, `${target}/x`, 100, false)
-    await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${target}/y`, 100, true)
+    await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${target}/y`, 100, false)
     return
   }
 
   // aneb: debugging only
   await this.saveResizedImage(page, smiles, svgXmlWithoutLabels, `${this.outputDirectory}/${id}-x`, 100, false)
-  await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${this.outputDirectory}/${id}-y`, 100, true)
+  await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${this.outputDirectory}/${id}-y`, 100, false)
 }
 
 module.exports = Renderer
