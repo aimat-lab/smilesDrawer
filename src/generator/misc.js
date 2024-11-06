@@ -68,16 +68,6 @@ const hash = function(x) {
   return crypto.createHash('sha256').update(x).digest('hex')
 }
 
-const setIntersection = (setA, setB) => {
-  const _intersection = new Set()
-  for (const elem of setB) {
-    if (setA.has(elem)) {
-      _intersection.add(elem)
-    }
-  }
-  return _intersection
-}
-
 const wait = ms => new Promise((resolve, reject) => {
   setTimeout(resolve, ms)
 })
@@ -86,6 +76,5 @@ module.exports = {
   readSmilesFromCsv,
   cliParams,
   hash,
-  setIntersection,
   wait
 }

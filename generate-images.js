@@ -3,9 +3,7 @@
   const path = require('path')
   const treekill = require('tree-kill')
   const fs = require('fs-extra')
-  const util = require('util')
   const _ = require('lodash')
-  const exec = util.promisify(require('child_process').exec)
   const { fork } = require('child_process')
 
   const oldCwd = process.cwd()
@@ -16,7 +14,7 @@
     process.chdir(newCwd)
   }
 
-  const { readSmilesFromCsv, cliParams, hash, setIntersection, wait } = require('./src/generator/misc')
+  const { readSmilesFromCsv, cliParams, wait } = require('./src/generator/misc')
 
   const conf = cliParams()
 
@@ -37,30 +35,9 @@
   const label = `generating ${smilesList.length} images with concurrency ${conf.concurrency}`
   console.time(label)
 
-  const xCmd = `find ${conf.outputDirectory} -type f -name 'x.*'`
-  const yCmd = `find ${conf.outputDirectory} -type f -name 'y.*'`
-  console.log(xCmd)
-  console.log(yCmd)
-
-  let x = await exec(xCmd, { maxBuffer: 100 * 1024 * 1024 })
-  let y = await exec(yCmd, { maxBuffer: 100 * 1024 * 1024 })
-  x = x.stdout.split('\n').map(x => x.split('/').slice(-2)[0])
-  y = y.stdout.split('\n').map(x => x.split('/').slice(-2)[0])
-
-  const existing = setIntersection(new Set(x), new Set(y))
-
-  const smilesToId = {}
-  for (const smiles of smilesList) {
-    const id = hash(smiles)
-    smilesToId[smiles] = existing.has(id) ? null : id
-  }
-
-  const missing = smilesList.filter(x => !!smilesToId[x])
-  console.log(`removed ${smilesList.length - missing.length} items, ${missing.length} left`)
-
   // aneb: clear state after every n images
   const numberOfBatches = Math.round(conf.amount / conf.batchSize)
-  const batches = _.chunk(missing, Math.round(conf.amount / numberOfBatches))
+  const batches = _.chunk(smilesList, Math.round(conf.amount / numberOfBatches))
 
   console.log(`processing ${conf.amount} images in ${batches.length} batches (batch size ${conf.batchSize}, concurrency ${conf.concurrency})`)
 
