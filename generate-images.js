@@ -41,11 +41,12 @@
 
   console.log(`processing ${conf.amount} images in ${batches.length} batches (batch size ${conf.batchSize}, concurrency ${conf.concurrency})`)
 
+  const browserDir = 'browser'
   const debug = typeof v8debug === 'object'
   const children = {}
   let done = 0
   for (const [index, smilesList] of batches.entries()) {
-    const tmpDir = path.join('browser', uuid())
+    const tmpDir = path.join(browserDir, uuid())
     await fs.ensureDir(tmpDir)
 
     const browserOptions = {
@@ -93,12 +94,22 @@
       await wait(1000)
     }
 
-    await fs.remove(tmpDir)
+    try {
+      await fs.remove(tmpDir)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   // aneb: must also wait for last processes to finish
   while (Object.keys(children).length !== 0) {
     await wait(100)
+  }
+
+  try {
+    await fs.remove(browserDir)
+  } catch (error) {
+    console.error(error)
   }
 
   console.timeEnd(label)
