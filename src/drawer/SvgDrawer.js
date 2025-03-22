@@ -99,7 +99,7 @@ class SvgDrawer {
     }
 
     const edgeIdLabel = 'edge-id'
-    const edgeIdValue = `edge-${edgeId}`
+    const edgeIdValue = `edge-id-${edge.id}`
 
     const a = vertexA.position
     const b = vertexB.position

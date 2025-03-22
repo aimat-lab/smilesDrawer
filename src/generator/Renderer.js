@@ -10,6 +10,7 @@ const SvgDrawer = require('../drawer/SvgDrawer')
 const SVG = require('./SVG')
 const { bondLabels } = require('./types')
 const { getPositionInfoFromSvg, resizeImage, drawMasksAroundTextElements } = require('./browser')
+const { getElementGraph } = require('./misc')
 
 function Renderer({ outputDirectory, size, fonts, fontWeights, concurrency, outputSvg, outputLabels, outputFlat }) {
   // aneb: find out why this does not work in above scope ...
@@ -143,7 +144,7 @@ Renderer.prototype.groupLabels = function(labels) {
   return _.sortBy(result, 'id')
 }
 
-Renderer.prototype.saveResizedImage = async function(page, smiles, svg, fileName, quality, jsonOnly = false) {
+Renderer.prototype.saveResizedImage = async function(page, smiles, graph, svg, fileName, quality, jsonOnly = false) {
   await page.setContent(svg, this.waitOptions)
   // TODO aneb: images are not resized anymore, clean up code later
   let [updatedSvg, labels, matrix] = await page.evaluate(resizeImage)
@@ -169,7 +170,9 @@ Renderer.prototype.saveResizedImage = async function(page, smiles, svg, fileName
       .map(l => ({ ...l, xy: this.svgHelper.transformPoints(l, matrix) }))
 
     labels = this.groupLabels(labels)
-    const result = { labels, smiles }
+
+    const elementGraph = getElementGraph(graph, labels)
+    const result = { labels, smiles, elementGraph }
 
     // ops.push(fs.writeFile(`${fileName}-meta.json`, JSON.stringify({ smiles }, null, 2)))
     ops.push(fs.writeFile(`${fileName}.json`, JSON.stringify(result, null, 2)))
@@ -230,7 +233,7 @@ Renderer.prototype.smilesToSvgXml = function(smiles) {
   // aneb: must set other properties after drawing
   this.svgHelper.update(svg, { style, smiles })
 
-  return this.XMLSerializer.serializeToString(svg)
+  return [this.XMLSerializer.serializeToString(svg), drawer.preprocessor.graph]
 }
 
 Renderer.prototype.getCornersAligned = function({ x, y, width: w, height: h }) {
@@ -262,7 +265,7 @@ Renderer.prototype.drawPoints = function({ id, label, points, text }) {
   const size = _.random(5, 10)
   return points.map(([x, y]) => {
     return this.svgHelper.createElement('circle', {
-      'label-id': `${id}-label`,
+      'label-id': `${id}`,
       label: label,
       text: text,
       cx: x,
@@ -291,7 +294,7 @@ Renderer.prototype.addLabels = function({ dom, xml }) {
 }
 
 Renderer.prototype.imageFromSmilesString = async function(page, smiles) {
-  const svgXmlWithoutLabels = this.smilesToSvgXml(smiles)
+  const [svgXmlWithoutLabels, graph] = this.smilesToSvgXml(smiles)
   const { dom, xml } = await this.positionInfoFromSvgXml(page, svgXmlWithoutLabels)
 
   // aneb: these are only at the original size, the final labels are computed after image has been resized
@@ -301,14 +304,14 @@ Renderer.prototype.imageFromSmilesString = async function(page, smiles) {
   if (!this.outputFlat) {
     const target = `${this.outputDirectory}/${id}`
     await fs.ensureDir(target)
-    await this.saveResizedImage(page, smiles, svgXmlWithoutLabels, `${target}/x`, 100, false)
-    await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${target}/y`, 100, false)
+    await this.saveResizedImage(page, smiles, graph, svgXmlWithoutLabels, `${target}/x`, 100, false)
+    await this.saveResizedImage(page, smiles, graph, svgXmlWithLabels, `${target}/y`, 100, false)
     return
   }
 
   // aneb: debugging only
-  await this.saveResizedImage(page, smiles, svgXmlWithoutLabels, `${this.outputDirectory}/${id}-x`, 100, false)
-  await this.saveResizedImage(page, smiles, svgXmlWithLabels, `${this.outputDirectory}/${id}-y`, 100, false)
+  await this.saveResizedImage(page, smiles, graph, svgXmlWithoutLabels, `${this.outputDirectory}/${id}-x`, 100, false)
+  await this.saveResizedImage(page, smiles, graph, svgXmlWithLabels, `${this.outputDirectory}/${id}-y`, 100, false)
 }
 
 module.exports = Renderer
