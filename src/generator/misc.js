@@ -80,6 +80,7 @@ const getElementGraph = (graph, labels) => {
   const nonTerminals = graph.vertices.filter(v => v.neighbours.length > 1)
 
   const triplets = new Set()
+  const elementIds = new Set(labels.map(l => l.id))
 
   for (const vertex of nonTerminals) {
     for (const s of vertex.neighbours) {
@@ -125,33 +126,46 @@ const getElementGraph = (graph, labels) => {
       }
     }
 
-    const sourceADrawn = labels.some(l => l.id === `vertex-id-${sourceA.id}`)
-    const targetADrawn = labels.some(l => l.id === `vertex-id-${targetA.id}`)
-    const sourceBDrawn = labels.some(l => l.id === `vertex-id-${sourceB.id}`)
-    const targetBDrawn = labels.some(l => l.id === `vertex-id-${targetB.id}`)
-
-    const intersectionDrawn = labels.some(l => l.id === `vertex-id-${intersectionId}`)
+    const sourceADrawn = elementIds.has(`vertex-id-${sourceA.id}`)
+    const targetADrawn = elementIds.has(`vertex-id-${targetA.id}`)
+    const sourceBDrawn = elementIds.has(`vertex-id-${sourceB.id}`)
+    const targetBDrawn = elementIds.has(`vertex-id-${targetB.id}`)
+    const intersectionDrawn = elementIds.has(`vertex-id-${intersectionId}`)
 
     if (!intersectionDrawn) {
-      elementGraph.push([`edge-${edgeA.id}`, `edge-${edgeB.id}`])
+      elementGraph.push([`edge-id-${edgeA.id}`, `edge-id-${edgeB.id}`])
     }
 
     if (sourceADrawn) {
-      elementGraph.push([`vertex-${sourceA.id}`, `edge-${edgeA.id}`])
+      elementGraph.push([`vertex-id-${sourceA.id}`, `edge-id-${edgeA.id}`])
     }
     if (targetADrawn) {
-      elementGraph.push([`vertex-${targetA.id}`, `edge-${edgeA.id}`])
+      elementGraph.push([`vertex-id-${targetA.id}`, `edge-id-${edgeA.id}`])
     }
     if (sourceBDrawn) {
-      elementGraph.push([`vertex-${sourceB.id}`, `edge-${edgeB.id}`])
+      elementGraph.push([`vertex-id-${sourceB.id}`, `edge-id-${edgeB.id}`])
     }
     if (targetBDrawn) {
-      elementGraph.push([`vertex-${targetB.id}`, `edge-${edgeB.id}`])
+      elementGraph.push([`vertex-id-${targetB.id}`, `edge-id-${edgeB.id}`])
     }
   }
 
-  const filtered = new Set(elementGraph.map(pair => JSON.stringify(pair.slice().sort())))
-  return Array.from(filtered).map(str => JSON.parse(str))
+  const sorted = new Set(elementGraph.map(pair => JSON.stringify(pair.slice().sort())))
+  const pairs = Array.from(sorted).map(str => JSON.parse(str))
+
+  const filtered = []
+  for (const [s, t] of pairs) {
+    if (!elementIds.has(s)) {
+      continue
+    }
+    if (!elementIds.has(t)) {
+      continue
+    }
+
+    filtered.push([s, t])
+  }
+
+  return filtered
 }
 
 module.exports = {
